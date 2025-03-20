@@ -3,3 +3,8 @@ export interface Pokemon {
     pokeId: string,
     assignedTeam: number
 }
+
+export interface favPokemon {
+    pokeName: string,
+    pokeId: string
+}

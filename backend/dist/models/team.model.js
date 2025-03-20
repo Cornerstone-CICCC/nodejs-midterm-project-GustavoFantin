@@ -44,14 +44,13 @@ class PokeModel {
         return this.favorite;
     }
     addFavorite(newPoke) {
-        const { pokeName, pokeId, assignedTeam } = newPoke;
+        const { pokeName, pokeId } = newPoke;
         const foundIndex = this.favorite.findIndex(t => t.pokeName === pokeName);
         if (foundIndex !== -1)
             return false;
         const pokemon = {
             pokeId,
             pokeName,
-            assignedTeam
         };
         this.favorite.push(pokemon);
         return pokemon;

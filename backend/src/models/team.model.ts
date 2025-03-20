@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { Pokemon } from "../types/team";
+import { favPokemon, Pokemon } from "../types/team";
 
 class PokeModel {
     team: Pokemon[] = []
-    favorite: Pokemon[] = []
+    favorite: favPokemon[] = []
 
     getTeam() {
         return this.team
@@ -46,14 +46,13 @@ class PokeModel {
         return this.favorite
     }
 
-    addFavorite(newPoke: Pokemon) {
-        const { pokeName, pokeId, assignedTeam } = newPoke
+    addFavorite(newPoke: favPokemon) {
+        const { pokeName, pokeId } = newPoke
         const foundIndex = this.favorite.findIndex(t => t.pokeName === pokeName)
         if (foundIndex !== -1) return false
         const pokemon = {
             pokeId,
             pokeName,
-            assignedTeam
         }
 
         this.favorite.push(pokemon)
