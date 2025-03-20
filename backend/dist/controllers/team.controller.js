@@ -39,6 +39,11 @@ const addPokemon = (req, res) => {
         res.status(422).json({ message: "You should fill all inputs" });
     }
     const pokemon = team_model_1.default.addPoke({ pokeId, pokeName, assignedTeam });
+    res.cookie('pokeId-team', pokeId, {
+        maxAge: 60 * 60 * 1000,
+        httpOnly: true,
+        signed: true
+    });
     res.status(201).json(pokemon);
 };
 /**
@@ -49,11 +54,16 @@ const addPokemon = (req, res) => {
  * @returns add pokemon to database and favorite List
  */
 const favoritePokemon = (req, res) => {
-    const { pokeId, pokeName, assignedTeam } = req.body;
-    if (!pokeId || !pokeName || !assignedTeam) {
+    const { pokeId, pokeName } = req.body;
+    if (!pokeId || !pokeName) {
         res.status(422).json({ message: "You should fill all inputs" });
     }
-    const pokemon = team_model_1.default.addFavorite({ pokeId, pokeName, assignedTeam });
+    const pokemon = team_model_1.default.addFavorite({ pokeId, pokeName });
+    res.cookie('pokeId-fav', pokeId, {
+        maxAge: 60 * 60 * 1000,
+        httpOnly: true,
+        signed: true
+    });
     if (!pokemon) {
         res.status(409).json({
             error: "pokemon is already favorite!"
@@ -84,7 +94,7 @@ const deletePokemon = (req, res) => {
  * @param {Response} res
  * @returns {void} returns success or fail message
  */
-const UnfavoritePokemon = (req, res) => {
+const unfavoritePokemon = (req, res) => {
     const { pokeId } = req.params;
     const result = team_model_1.default.removeFavById(pokeId);
     if (!result) {
@@ -95,4 +105,47 @@ const UnfavoritePokemon = (req, res) => {
 };
 /**
  * search by Id on team list
- */ 
+ *
+ * @param {Request<{ pokeId: string, assignedTeam: number }>} req
+ * @param {Response} res
+ * @returns returns pokemon that matches details
+ */
+const searchById = (req, res) => {
+    const { pokeId, assignedTeam } = req.signedCookies;
+    if (pokeId && assignedTeam) {
+        const pokemon = team_model_1.default.findById(req.signedCookies.pokeId, req.signedCookies.assignedTeam);
+        res.status(200).json(pokemon);
+        return;
+    }
+    res.status(500).json({
+        error: "Pokemon has not been added"
+    });
+};
+/**
+ * search by Id on fav list
+ *
+ * @param {Request<{ pokeId: string }>} req
+ * @param {Response} res
+ * @returns returns pokemon that matches details
+ */
+const searchFavById = (req, res) => {
+    const { pokeId } = req.signedCookies;
+    if (pokeId) {
+        const pokemon = team_model_1.default.findFavById(req.signedCookies.pokeId);
+        res.status(200).json(pokemon);
+        return;
+    }
+    res.status(500).json({
+        error: "Pokemon has not been added"
+    });
+};
+exports.default = {
+    getPokemons,
+    getFavList,
+    addPokemon,
+    favoritePokemon,
+    deletePokemon,
+    unfavoritePokemon,
+    searchById,
+    searchFavById
+};

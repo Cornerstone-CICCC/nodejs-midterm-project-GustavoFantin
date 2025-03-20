@@ -56,11 +56,11 @@ const addPokemon = (req: Request, res: Response) => {
  * @returns add pokemon to database and favorite List
  */
 const favoritePokemon = (req: Request, res: Response) => {
-    const { pokeId, pokeName, assignedTeam } = req.body
-    if (!pokeId || !pokeName || !assignedTeam) {
+    const { pokeId, pokeName } = req.body
+    if (!pokeId || !pokeName) {
         res.status(422).json({ message: "You should fill all inputs" })
     }
-    const pokemon = pokeModel.addFavorite({ pokeId, pokeName, assignedTeam })
+    const pokemon = pokeModel.addFavorite({ pokeId, pokeName })
     
     res.cookie('pokeId-fav', pokeId, {
         maxAge: 60 * 60 * 1000,
