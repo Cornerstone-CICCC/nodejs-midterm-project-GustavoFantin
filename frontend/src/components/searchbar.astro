@@ -1,0 +1,191 @@
+<div class="flex justify-center p-5">
+  <input
+    type="text"
+    name="searchbar"
+    id="searchbar"
+    class="border-1 rounded bg-white"
+  />
+  <button id="search-btn" class="border bg-white">Search</button>
+</div>
+
+<script>
+  const searchValue = document.querySelector("#searchbar") as HTMLInputElement;
+  const searchBtn = document.querySelector("#search-btn") as HTMLButtonElement;
+  const container = document.querySelector(".modal-here") as HTMLDialogElement;
+
+  const getPokeData = async (name: string) => {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+
+    const data = await res.json();
+    return data;
+  };
+
+  const getPokemonTypes = async (pokemonId: number) => {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+    const data = await res.json();
+
+    return data.types.map((t: any) => t.type.name);
+  };
+
+  const getAbility = async (name: string) => {
+    const res = await fetch(`${name}`);
+
+    const data = await res.json();
+    return data;
+  };
+
+  const renderModal = async () => {
+    const pokemonData = await getPokeData(searchValue.value);
+    const ability1 = await getAbility(pokemonData.abilities[0].ability.url);
+
+    const pokemonName = pokemonData.name;
+    const pokemonId = pokemonData.id;
+
+    const getPokeDesc = async (id: string) => {
+      const res = await fetch(
+        `https://pokeapi.co/api/v2/pokemon-species/${id}`
+      );
+
+      const data = await res.json();
+      const descriptionEntry = data.flavor_text_entries.find(
+        (entry: any) => entry.language.name === "en"
+      );
+
+      return descriptionEntry
+        ? descriptionEntry.flavor_text
+        : "No description found.";
+    };
+
+    const description = await getPokeDesc(pokemonData.id);
+    const types = await getPokemonTypes(pokemonId);
+
+    container.innerHTML = `
+    <div id="dialog-div" class="rounded-lg h-full w-full gap-3 border-1 md:flex md:flex-row p-3 grid grid-cols-1">
+      <div class="bg-white w-max h-max p-5 rounded-lg md:flex md:flex-col">
+        
+          <div class="flex shadow-lg rounded-lg border flex-col-reverse items-end">
+            <img class="w-30 " src="${pokemonData.sprites.front_default}"/>
+              <div class="flex flex-row-reverse justify-between w-full">
+                <button id="fav-btn" class="m-2">
+                  <svg class=" w-[28px] h-[28px] text-yellow-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/     svg"       width="24" height="24" fill="yellow" viewBox="0 0 24 24">
+                  <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                  </svg>
+                </button>  
+                <div class="types m-2"></div>
+              </div> 
+                
+          </div>
+          <span class="flex justify-around">${pokemonName} #${pokemonId} </span>
+          <div class="flex gap-5">
+           
+            
+          </div>
+        </div>
+
+
+        <div class="flex flex-col">
+          <div class="flex flex-col">
+            <span class="text-lg font-bold">Description</span>
+            <span class="bg-[#CECECE] w-auto h-auto flex flex-col p-3 border-1 rounded-md">${description}</span>
+          </div>
+          <div class="flex flex-col">
+            <p class="text-lg font-bold mb-1">Abilities</p>
+            
+            <div class="abilities flex md:flex-row flex-col place-content-evenly ">
+              <div class="bg-[#CECECE] w-auto h-auto flex flex-col p-3 border-1 rounded-md">
+                <span class="font-semibold">${pokemonData.abilities[0].ability.name}</span>
+                <span class="text-center">${ability1.effect_entries[1].effect}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+    `;
+
+    const typesContainer = document.querySelector(".types")!;
+    typesContainer.innerHTML = types
+      .map(
+        (t: any) =>
+          `<img src="/typesIcons/${t}.svg" alt="${t}" class="w-8 h-8"/>`
+      )
+      .join("");
+
+    const ab = document.querySelector(".abilities") as HTMLDivElement;
+
+    if (await getAbility(pokemonData.abilities[1].ability.url)) {
+      const ability2 = await getAbility(pokemonData.abilities[1].ability.url);
+
+      const divAb2 = document.createElement("div");
+      divAb2.className = `bg-[#CECECE] w-auto h-auto flex flex-col p-3 border-1 rounded-md`;
+      const ab2Name = document.createElement("span");
+      ab2Name.className = `font-semibold`;
+      const ab2Detail = document.createElement("span");
+      ab2Detail.className = `text-center`;
+      ab2Name.textContent = `${pokemonData.abilities[1].ability.name}`;
+      ab2Detail.textContent = `${ability2.effect_entries[1]?.effect}`;
+      divAb2.append(ab2Name);
+      divAb2.append(ab2Detail);
+
+      ab.append(divAb2);
+    } else {
+    }
+    const favBtn = document.querySelector("#fav-btn") as HTMLButtonElement;
+
+    favBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const res = await fetch(`http://localhost:4500/team/add-fav`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pokeName: pokemonName,
+          pokeId: pokemonId,
+        }),
+      });
+
+      location.reload();
+      const data = await res.json();
+      return data;
+    });
+
+    const dialogDiv = document.querySelector("#dialog-div") as HTMLDivElement;
+    dialogDiv.addEventListener("click", (e) => e.stopPropagation());
+  };
+  // console.log(await getFavorites());
+
+  const render = async () => {
+    const pokemonData = await getPokeData(searchValue.value);
+    // console.log(pokemonData);
+  };
+
+  container.addEventListener("click", () => container.close());
+
+  searchBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    renderModal();
+    if (searchValue.value === "") {
+      alert("Please fill searchbar!");
+    } else {
+      container.showModal();
+    }
+
+    await render();
+  });
+
+  searchValue.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      renderModal();
+      if (searchValue.value === "") {
+        alert("Please fill searchbar!");
+      } else {
+        container.showModal();
+      }
+
+      await render();
+    }
+  });
+</script>

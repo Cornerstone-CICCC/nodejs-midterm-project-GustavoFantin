@@ -1,0 +1,296 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+---
+
+<Layout>
+  <section class="grid grid-cols-2 h-full">
+    <!-- team 1 -->
+    <div>
+      <div id="pokeTeams" class="bg-white border-2 rounded-lg m-8">
+        <dialog class="team-dialog">
+          <div id="dialog-container" class="m-4 p-4 gap-3"></div>
+        </dialog>
+        <button
+          id="clickAdd"
+          class="rounded-lg bg-[#11095E] p-3 text-yellow-300 m-4"
+          >Add To Team</button
+        >
+        <div id="team1" class="lg:flex lg:row gap-5 p-2 grid grid-cols-2"></div>
+      </div>
+    </div>
+    <!-- team 2 -->
+    <div class="row-[2]">
+      <div id="pokeTeams" class="bg-white border-2 rounded-lg m-8">
+        <dialog class="team-dialog">
+          <div id="dialog-container" class="m-4 p-4 gap-3"></div>
+        </dialog>
+        <button
+          id="clickAdd2"
+          class="rounded-lg bg-[#11095E] p-3 text-yellow-300 m-4"
+          >Add To Team</button
+        >
+        <div id="team2" class="lg:flex lg:row gap-5 p-2 grid grid-cols-2"></div>
+      </div>
+    </div>
+    <!-- favorite pokemon -->
+    <div id="favPoke">
+      <div>
+        <div
+          id="showFav"
+          class="border-2 rounded-lg bg-white m-8 grid grid-cols-3"
+        >
+          <span
+            id="favTitle"
+            class="text-yellow-300 flex items-center text-center m-2 text-sm"
+            >Favorite Pokemons</span
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const team1div = document.querySelector("#team1") as HTMLDivElement;
+  const team2div = document.querySelector("#team2") as HTMLDivElement;
+  const clickAdd = document.querySelector("#clickAdd") as HTMLButtonElement;
+  const clickAdd2 = document.querySelector("#clickAdd2") as HTMLButtonElement;
+  const teamDialog = document.querySelector(
+    ".team-dialog"
+  ) as HTMLDialogElement;
+  const dialogContainer = document.querySelector(
+    "#dialog-container"
+  ) as HTMLDivElement;
+
+  const searchResults = document.querySelector(
+    "#searchResults"
+  ) as HTMLDivElement;
+
+  //data from POKEAPI
+
+  const adderModal = async () => {
+    dialogContainer.innerHTML = `
+      <input type="text" name="searchbar" id="searchAdd" placeholder="Enter Pokemon Name..." class="border-2" />
+      <label>Select Team:</label>
+      <select id="selector" name="select-team" class="border">
+        <option value="1">Team 1</option>
+        <option value="2">Team 2</option>
+        <option value="3">Team 3</option>
+      </select>
+      <button id="addBtn" class="border">Add</button>
+      <div id="searchResults" class="none"></div>
+    `;
+    const teamInput = document.querySelector("#selector") as HTMLSelectElement;
+    const addBtn = document.querySelector("#addBtn") as HTMLButtonElement;
+    const searchInput = document.querySelector(
+      "#searchAdd"
+    ) as HTMLInputElement;
+
+    const getPokeData = async (name: string) => {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}/`);
+
+      const data = await res.json();
+      return data;
+    };
+
+    addBtn.addEventListener("click", async () => {
+      const pokemonData = await getPokeData(searchInput.value);
+      const pokemonTeam = teamInput.value;
+      const pokemonId = pokemonData.id;
+      const pokemonName = pokemonData.name;
+
+      try {
+        const res = await fetch(`http://localhost:4500/team/add-team`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pokeId: await pokemonId,
+            pokeName: pokemonName,
+            assignedTeam: pokemonTeam,
+          }),
+        });
+
+        if (res.ok) {
+          alert(`Pokemon added to team ${pokemonTeam}`);
+          teamDialog.close();
+        } else {
+          alert(`You cannot have more than 6 pokemons!`);
+        }
+        location.reload();
+
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  };
+
+  const getPokeIdsFromBackend = async (teamNumber: string) => {
+    try {
+      const res = await fetch(`http://localhost:4500/team/get-team`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Types": "application/json",
+        },
+      });
+
+      const data = await res.json();
+      const findTeam = data.filter(
+        (pokemon: any) => pokemon.assignedTeam === teamNumber
+      );
+      const pokeIds = findTeam.map((pokemon: any) => pokemon.pokeId);
+      return pokeIds;
+    } catch (error) {}
+  };
+
+  //make page listen to changes and load the backend info to API and append images to containers
+  document.addEventListener("DOMContentLoaded", (e) => {
+    e.preventDefault();
+
+    getPokeIdsFromBackend("1").then(async (pokeIds) => {
+      if (pokeIds.length === 0) return;
+
+      for (const pokeId of pokeIds) {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokeId}/`);
+        const data = await res.json();
+        let pokemonFrame = `
+          <div class="flex flex-col">
+            <img src="${data.sprites.front_default}"/>
+            <p>${data.name}</p>
+          </div>
+        `;
+        const divPokemon = document.createElement("div");
+        divPokemon.classList.add("flex");
+        divPokemon.classList.add("flex-col");
+        divPokemon.classList.add("items-center");
+        const pokeImg = document.createElement("img");
+        pokeImg.src = `${data.sprites.front_default}`;
+        const pTag = document.createElement("p");
+        pTag.textContent = `${data.name}`;
+        //remove poke
+        // const rmvBtn = document.createElement("button");
+        // rmvBtn.textContent = `remove`;
+        // rmvBtn.addEventListener("click", async (e) => {
+        //   e.preventDefault();
+        //     const res = await fetch(
+        //       `https://pokeapi.co/api/v2/pokemon/${p}/`
+        //     );
+
+        //     const data = await res.json();
+        //     return data;
+
+        // });
+
+        divPokemon.append(pokeImg);
+        divPokemon.append(pTag);
+        // divPokemon.append(rmvBtn);
+        team1div.append(divPokemon);
+      }
+    });
+    getPokeIdsFromBackend("2").then(async (pokeIds) => {
+      if (pokeIds.length === 0) return;
+
+      for (const pokeId of pokeIds) {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokeId}/`);
+        const data = await res.json();
+        let pokemonFrame = `
+          <div class="flex flex-col">
+            <img src="${data.sprites.front_default}"/>
+            <p>${data.name}</p>
+          </div>
+        `;
+        const divPokemon = document.createElement("div");
+        divPokemon.classList.add("flex");
+        divPokemon.classList.add("flex-col");
+        divPokemon.classList.add("items-center");
+        const pokeImg = document.createElement("img");
+        pokeImg.src = `${data.sprites.front_default}`;
+        const pTag = document.createElement("p");
+        pTag.textContent = `${data.name}`;
+        divPokemon.append(pokeImg);
+        divPokemon.append(pTag);
+        team2div.append(divPokemon);
+      }
+    });
+  });
+
+  teamDialog.addEventListener("click", () => teamDialog.close());
+  dialogContainer.addEventListener("click", (e) => e.stopPropagation());
+
+  clickAdd.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    adderModal();
+    teamDialog.showModal();
+  });
+
+  clickAdd2.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    adderModal();
+    teamDialog.showModal();
+  });
+
+  // ----------------FAVORITE SECTION----------------------
+  const favContainer = document.querySelector("#showFav") as HTMLDivElement;
+
+  const getFavIdFromBack = async () => {
+    try {
+      const res = await fetch(`http://localhost:4500/team/get-fav`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Types": "application/json",
+        },
+      });
+
+      const data = await res.json();
+      const pokeIds = data.map((pokemon: any) => pokemon.pokeId);
+      return pokeIds;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkCookies = async () => {
+    const res = await fetch(`http://localhost:4500/user/check-auth`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      window.location.href = "/login";
+      return;
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", async (e) => {
+    e.preventDefault();
+    checkCookies();
+    await getFavIdFromBack().then(async (pokeIds) => {
+      if (pokeIds.length === 0) {
+        const defaultText = document.createElement("span");
+        defaultText.className = `text-center`;
+        defaultText.textContent = "No pokemons favorited, search to favorite!";
+        favContainer.prepend(defaultText);
+      }
+
+      for (const pokeId of pokeIds) {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokeId}/`);
+        const data = await res.json();
+        const favImg = document.createElement("img");
+        favImg.src = `${data.sprites.front_default}`;
+        favContainer.append(favImg);
+      }
+    });
+  });
+</script>

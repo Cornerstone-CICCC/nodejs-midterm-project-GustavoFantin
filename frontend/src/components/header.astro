@@ -1,0 +1,28 @@
+<header>
+  <nav
+    class="bg-[#3466AF] h-20 w-screen flex flex-row items-center place-content-between"
+  >
+    <div class="flex flex-row items-center">
+      <img src="/logo.png" alt="" class="h-[80px]" />
+      <span id="logoTitle" class="text-yellow-300 text-3xl">PokeMaker</span>
+    </div>
+    <div class="m-4">
+      <a href="/homepage" id="homeHeader" class="m-2 text-yellow-300">Home</a>
+      <a href="/about" id="homeHeader" class="m-2 text-yellow-300">About</a>
+      <a href="" class="m-2 text-yellow-300" id="logout">Logout</a>
+    </div>
+  </nav>
+</header>
+<script>
+  const logout = document.querySelector("#logout") as HTMLAnchorElement;
+
+  logout.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    const res = await fetch(`http://localhost:4500/user/logout`, {
+      method: "GET",
+      credentials: "include",
+    });
+    window.location.href = "/login";
+  });
+</script>
