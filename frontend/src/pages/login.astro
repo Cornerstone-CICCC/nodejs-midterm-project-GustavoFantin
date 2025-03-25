@@ -1,28 +1,79 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
 ---
 
 <Layout>
-  <h1>Log In Here</h1>
-  <form action="/login" id="login-form">
-    <label>
-      Username
-      <input
-        type="text"
-        name="username"
-        placeholder="Enter username"
-        id="username-login"
-      />
-    </label>
-    <label>
-      Password
-      <input
-        type="password"
-        name="password"
-        placeholder="Enter password"
-        id="password-login"
-      />
-    </label>
-    <button type="submit">Log In</button>
-  </form>
+  <div
+    class="w-full min-h-screen flex flex-col items-center div-container mt-[5rem]"
+  >
+    <div class="bg-white rounded-lg border flex flex-col items-center">
+      <h1 class="lg:text-3xl text-2xl m-7">Welcome to PokeMaker</h1>
+      <form
+        action="/login"
+        id="login-form"
+        class="w-full max-w-lg flex items-center flex-col"
+      >
+        <label class="flex flex-col items-left">
+          <span class="text-xl mt-[20px] mb-[5px]">Username</span>
+          <input
+            type="text"
+            name="username"
+            placeholder="Enter username"
+            id="username-login"
+            class="border rounded w-4xs h-[35px] text-xl p-2"
+          />
+        </label>
+        <label class="flex flex-col items-left">
+          <span class="text-xl mt-[20px] mb-[5px]">Password</span>
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter password"
+            id="password-login"
+            class="border rounded w-4xs h-[35px] text-xl p-2"
+          />
+        </label>
+        <button class="text-lg border rounded py-1 px-8 m-5" type="submit"
+          >Log In</button
+        >
+        <a href="/signup" class="mb-5 underline"
+          >Don't have an account? Click here!</a
+        >
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.querySelector("#login-form") as HTMLFormElement;
+    const username = document.querySelector(
+      "#username-login"
+    ) as HTMLInputElement;
+    const password = document.querySelector(
+      "#password-login"
+    ) as HTMLInputElement;
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const res = await fetch(`http://localhost:4500/user/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.value,
+          password: password.value,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Login successful!");
+        window.location.href = "/homepage";
+      } else {
+        alert("Login failed.");
+      }
+    });
+  </script>
 </Layout>

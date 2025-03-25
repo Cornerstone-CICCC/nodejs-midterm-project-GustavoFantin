@@ -1,0 +1,95 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+---
+
+<Layout>
+  <div
+    class="w-full min-h-screen flex flex-col items-center div-container mt-[5rem]"
+  >
+    <div class="bg-white rounded-lg border flex flex-col items-center">
+      <h1 class="lg:text-3xl text-2xl m-7">Sign Up Here</h1>
+      <form
+        action="/signup"
+        id="signup-form"
+        class="w-full max-w-lg flex items-center flex-col m-4"
+      >
+        <label class="flex flex-col items-left">
+          <span class="text-xl mt-[20px] mb-[5px]">Username</span>
+          <input
+            type="text"
+            name="username"
+            placeholder="Enter username"
+            id="username-signup"
+            class="border rounded w-4xs h-[35px] text-xl p-2"
+          />
+        </label>
+        <label class="flex flex-col items-left">
+          <span class="text-xl mt-[20px] mb-[5px]">Password</span>
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter password"
+            id="password-signup"
+            class="border rounded w-4xs h-[35px] text-xl p-2"
+          />
+        </label>
+        <label class="flex flex-col items-left">
+          <span class="text-xl mt-[20px] mb-[5px]">Favorite Pokemon</span>
+          <input
+            type="text"
+            name="fav-poke"
+            placeholder="Enter your favorite Pokemon!"
+            id="fav-pokemon"
+            class="border rounded w-4xs h-[35px] text-xl p-2"
+          />
+        </label>
+        <button class="text-lg border rounded py-1 px-8 m-5" type="submit"
+          >Sign Up</button
+        >
+        <a href="/login" class="mb-5 underline"
+          >Already have an account? Click here!</a
+        >
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const signupForm = document.querySelector(
+      "#signup-form"
+    ) as HTMLFormElement;
+    const username = document.querySelector(
+      "#username-signup"
+    ) as HTMLInputElement;
+    const password = document.querySelector(
+      "#password-signup"
+    ) as HTMLInputElement;
+    const favPokemon = document.querySelector(
+      "#fav-pokemon"
+    ) as HTMLInputElement;
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const res = await fetch(`http://localhost:4500/user/signup`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.value,
+          password: password.value,
+          favoritePokemon: favPokemon.value,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Sign Up successfull!");
+        window.location.href = "/login";
+      } else {
+        alert("Sign Up failed.");
+      }
+    });
+  </script>
+</Layout>

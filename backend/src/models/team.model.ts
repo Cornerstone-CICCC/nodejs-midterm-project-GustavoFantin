@@ -4,6 +4,7 @@ import { favPokemon, Pokemon } from "../types/team";
 class PokeModel {
     team: Pokemon[] = []
     favorite: favPokemon[] = []
+    counter = 0
 
     getTeam() {
         return this.team
@@ -22,6 +23,7 @@ class PokeModel {
     }
 
     addPoke(newPoke: Pokemon) {
+        this.counter++
         const { pokeName, pokeId, assignedTeam } = newPoke
         const foundIndex = this.team.findIndex(t => t.pokeName === pokeName)
         if (foundIndex !== -1) return false
@@ -30,12 +32,17 @@ class PokeModel {
             pokeName,
             assignedTeam
         }
+        const teamMax = 6
+        if (this.counter > teamMax) {
+            return 
+        }
 
         this.team.push(pokemon)
         return pokemon
     }
     
     removePokeById (pokeId: string) {
+        this.counter--
         const foundIndex = this.team.findIndex(u => u.pokeId === pokeId)
         if (foundIndex === -1) return false
         this.team.splice(foundIndex, 1)

@@ -4,6 +4,7 @@ class PokeModel {
     constructor() {
         this.team = [];
         this.favorite = [];
+        this.counter = 0;
     }
     getTeam() {
         return this.team;
@@ -21,6 +22,7 @@ class PokeModel {
         return pokemon;
     }
     addPoke(newPoke) {
+        this.counter++;
         const { pokeName, pokeId, assignedTeam } = newPoke;
         const foundIndex = this.team.findIndex(t => t.pokeName === pokeName);
         if (foundIndex !== -1)
@@ -30,10 +32,15 @@ class PokeModel {
             pokeName,
             assignedTeam
         };
+        const teamMax = 6;
+        if (this.counter > teamMax) {
+            return;
+        }
         this.team.push(pokemon);
         return pokemon;
     }
     removePokeById(pokeId) {
+        this.counter--;
         const foundIndex = this.team.findIndex(u => u.pokeId === pokeId);
         if (foundIndex === -1)
             return false;
